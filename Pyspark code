@@ -1,0 +1,39 @@
+from datetime import date
+from pyspark.sql.functions import lit
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.appName('artis-pipeline').getOrCreate()
+
+run_date = date.today()
+run_year = str(run_date.year)
+run_month = str(run_date.month)
+run_day = str(run_date.day)
+
+s3bucket = 's3://aws-a0082-use1-00-d-s3b-jazz-air-data01'
+s3prefix='Datalake'
+source_stage='DQM'
+source_table='DQM_VEEVA_CALL'
+xref_table = 'DQM_SHYFT_HCP_XREF'
+target_stage='DWH'
+target_table='FCT_PHYS_CALLS'
+
+input_basepath = s3bucket +'/'+ s3prefix +'/'+source_stage+'/'+source_table
+input_path = input_basepath + '/YEAR='+run_year+ '/MONTH='+run_month+ '/DAY='+run_day + '/'
+xref_path = s3bucket +'/'+ s3prefix +'/'+source_stage+'/'+ xref_table + '/YEAR='+run_year+ '/MONTH='+run_month+ '/DAY='+run_day + '/'
+processed_path=s3bucket +'/'+ s3prefix +'/'+target_stage+'/'+ target_table + '/YEAR='+run_year+ '/MONTH='+run_month+ '/DAY='+run_day + '/'
+
+xref_df = spark.read.parquet(xref_path)
+xref_df.createOrReplaceTempView(xref_table)
+input_df = spark.read.parquet(input_path)
+input_df.createOrReplaceTempView(source_table)
+
+transform_sql = """
+SELECT D.ACCOUNT_VOD_C AS VEEVA_ID, X.HCP_ENTITY_ID as SHYFT_ID, TRUNC(D.CALL_DATE_VOD_C,'MM') AS CALL_DATE, COUNT(D.ID) AS NUM_OF_CALLS 
+FROM DQM_VEEVA_CALL D
+LEFT JOIN DQM_SHYFT_HCP_XREF X ON D.ACCOUNT_VOD_C = X.ID_VALUE
+GROUP BY D.ACCOUNT_VOD_C,X.HCP_ENTITY_ID, TRUNC(D.CALL_DATE_VOD_C,'MM')
+"""
+
+processed_df = spark.sql(transform_sql)
+processed_df.show()
+processed_df.write.mode('overwrite').parquet(processed_path)
