@@ -1,0 +1,23 @@
+str='5F3Z-2e-9-w'
+
+new=[]
+new1=[]
+new2=[]
+#str=str.split()
+
+for i in range(len(str)):
+#  if(i<=k):
+  new.append(str[i])
+print(new)
+k=4
+for i in range(len(str)):
+  if (i <=k):
+    new.append(new[i])
+    else:
+      
+    else:
+   #  else:
+    new2.append(new[i])
+
+  print(new1)
+  print(new2)
