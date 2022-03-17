@@ -1,0 +1,10 @@
+seq=[3,8,9,6,-4]
+
+
+
+for i in range(len(seq)):
+  
+  a=seq[i]
+  total=total+a
+
+print (total)
