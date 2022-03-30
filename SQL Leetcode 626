@@ -1,0 +1,16 @@
+Exchange seat
+
+with total as
+(
+select count(*) as total from seat
+)
+select 
+(case
+when mod(id,2)!=0 and total!=id then id+1
+when mod(id,2)!=0 and total=id then id
+else id-1 
+end)
+as id
+ from seat
+ order by
+ id asc
