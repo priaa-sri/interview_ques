@@ -1,0 +1,11 @@
+Write a function to return the number of times a character appears in a string. The character can be the empty strinG?
+def char_frequency(str1):
+    dict = {}
+    for n in str1:
+        keys = dict.keys()
+        if n in keys:
+            dict[n] += 1
+        else:
+            dict[n] = 1
+    return dict
+print(char_frequency('google.com'))
